@@ -1,55 +1,61 @@
-! AdGuard Home Allowlist
-! Updated: 2025-08-29
+! Title: Hudson Hok’s Personal Allowlist
+! Description: Prevents DNS-level blocking on major video, social media, and streaming platforms.
 ! Author: Hudson Hok
-! This allowlist prevents all DNS-level blocking for major video, social media, and streaming platforms.
-
+! Homepage: https://hudson-hok.netlify.app
+! License: Personal Use Only
+! Issues: hlhok4@gmail.com
+! Expires: 1 day
+! Last modified: 29 Aug 2025 17:30 UTC
+! Version: 2025.0829.1730
+! Syntax: AdBlock
+!
 ! YouTube
-*.youtube.com
-*.youtube-nocookie.com
-*.ytimg.com
-*.googlevideo.com
+@@||youtube.com^
+@@||youtube-nocookie.com^
+@@||ytimg.com^
+@@||googlevideo.com^
 
 ! Twitch
-*.twitch.tv
-*.ttvnw.net
-*.twitchcdn.net
+@@||twitch.tv^
+@@||ttvnw.net^
+@@||twitchcdn.net^
 
 ! Facebook / Instagram / Meta
-*.facebook.com
-*.fbcdn.net
-*.instagram.com
-*.cdninstagram.com
-*.messenger.com
-*.whatsapp.com
+@@||facebook.com^
+@@||fbcdn.net^
+@@||instagram.com^
+@@||cdninstagram.com^
+@@||messenger.com^
+@@||whatsapp.com^
 
 ! Twitter / X
-*.twitter.com
-*.t.co
-*.twimg.com
+@@||twitter.com^
+@@||t.co^
+@@||twimg.com^
 
 ! LinkedIn
-*.linkedin.com
-*.licdn.com
+@@||linkedin.com^
+@@||licdn.com^
 
 ! Reddit
-*.reddit.com
-*.redditmedia.com
-*.redd.it
+@@||reddit.com^
+@@||redditmedia.com^
+@@||redd.it^
 
 ! TikTok
-*.tiktok.com
-*.tik-tokcdn.com
+@@||tiktok.com^
+@@||tik-tokcdn.com^
 
 ! Pinterest
-*.pinterest.com
-*.pinimg.com
+@@||pinterest.com^
+@@||pinimg.com^
 
 ! Vimeo / Dailymotion / Video platforms
-*.vimeo.com
-*.dailymotion.com
-*.dmcdn.net
+@@||vimeo.com^
+@@||dailymotion.com^
+@@||dmcdn.net^
 
 ! Sound / Music
-*.soundcloud.com
-*.spotify.com
-*.scdn.co
+@@||soundcloud.com^
+@@||spotify.com^
+@@||scdn.co^
