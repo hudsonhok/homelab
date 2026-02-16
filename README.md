@@ -1,96 +1,258 @@
-# 🏠 Home Server Setup
+# 🏠 Homelab Infrastructure Architecture
 
-[![Proxmox](https://img.shields.io/badge/Proxmox-VE-orange?logo=proxmox)](https://www.proxmox.com)  
-[![ZFS](https://img.shields.io/badge/ZFS-Storage-blue?logo=linux)](https://openzfs.org)  
-[![Jellyfin](https://img.shields.io/badge/Jellyfin-Media%20Server-purple?logo=jellyfin)](https://jellyfin.org)  
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+A self-hosted, modular homelab environment built for media management, cloud services, monitoring, development, and game hosting, powered by ZFS storage and virtualized using Proxmox VE.
 
-This repository documents the setup, configuration, and management of my **dedicated Proxmox-based home server**.  
-It serves as a central hub for self-hosted services, media management, and network-level tools.  
+## Table of Contents
 
----
+- [Core Principles](#core-principles)
+- [🗂️ Architecture Overview](#️-architecture-overview)
+- [💾 Data Layer — ZFS](#-data-layer--zfs)
+- [🖥️ Host Layer — Proxmox](#️-host-layer--proxmox)
+- [📦 System Layer — LXC Containers](#-system-layer--lxc-containers)
+- [🧱 Platform Layer — Virtual Machines](#-platform-layer--virtual-machines)
+- [📊 Monitoring Stack](#-monitoring-stack)
+- [🔐 Security Model](#-security-model)
+- [🚀 Key Design Principles](#-key-design-principles)
+- [📈 Future Improvements](#-future-improvements)
 
-## 📑 Table of Contents
-- [Hardware](#-hardware)
-- [Proxmox Configuration](#-proxmox-configuration)
-- [Services & Applications](#-services--applications)
-- [Directory Structure](#-directory-structure)
-- [Future Plans](#-future-plans--to-do)
-- [Notes](#-notes)
+## Core Principles
 
----
+This architecture emphasizes:
 
-## 💻 Hardware
+- 🔐 Service isolation
+- 📦 Logical storage separation
+- 🌐 Clean network segmentation
+- 🔄 Containerized application management
+- 📊 Observability and monitoring
+- 🧪 (Generally) Safe experimentation environment
 
-| Component      | Details |
-|----------------|---------|
-| **Case**       | Jonsbo N10 |
-| **CPU**        | Intel i5-13500 |
-| **Motherboard**| ROG Strix B660-i |
-| **RAM**        | G. Skill Ripjaws S5 32GB DDR5 6000MHz CL36 |
-| **Cooling**    | Thermalright AXP90-36 |
-| **System Disk**| Samsung 980 Pro 1TB NVMe SSD (ext4) |
-| **Storage Pool** | 4 × 2TB Samsung PM863 SATA SSDs (ZFS RAID-Z1 `tank`, 8TB usable) |
-| **PSU**        | Enhance ENP-8345L 450W Flex ATX Modular |
+## 🗂️ Architecture Overview
 
----
+```
+Physical Host
+└── Proxmox (Hypervisor)
+    ├── LXC Containers (System Layer)
+    ├── Virtual Machines (Platform Layer)
+    └── ZFS Storage (Data Layer)
+```
 
-## ⚙️ Proxmox Configuration
+## 💾 Data Layer — ZFS
 
-- **Base Storage**:
-  - `local-lvm`: Root disks, Docker volumes
-  - `tank`: ZFS RAID-Z1 (8TB usable) for media storage (`media-dataset`)
+All persistent storage is managed via ZFS using the primary pool: `tank/`
 
-- **LXC Containers**:
-  <details>
-  <summary><b>media</b></summary>
+### ZFS Benefits
 
-  - Root disk on `local-lvm`  
-  - Docker folder on `local-lvm`  
-  - 4TB mount from `tank/media-dataset`  
+- Data integrity (checksums)
+- Snapshots
+- Efficient replication
+- Dataset-level control
+- Compression support
 
-  </details>
+### 📁 Dataset Layout
 
-  <details>
-  <summary><b>adguard</b></summary>
+```
+tank/
+├── media/
+│   ├── user/        # personal photos + videos
+│   ├── movies/      # feature films, anime movies
+│   └── shows/       # episodic series, anime
+├── services/
+│   ├── infra/       # reverse proxy, auth, orchestration
+│   ├── monitoring/  # metrics + dashboards
+│   ├── apps/        # productivity & personal cloud
+│   ├── media/       # media automation stack
+│   ├── downloads/   # torrent & usenet clients
+│   └── dev/         # development storage
+└── backups/         # snapshots & external backups
+```
 
-  - Runs **AdGuard Home** for DNS & ad-blocking  
-  - Unprivileged container  
+### 🔎 Design Rationale
 
-  </details>
+- `media/` is isolated for high-capacity streaming workloads
+- `services/` separates container data by function for easier backup and migration
 
-- **Virtual Machines (VMs)**:
-  <details>
-  <summary><b>ARR Stack</b></summary>
+## 🖥️ Host Layer — Proxmox
 
-  - Radarr, Sonarr, Lidarr  
-  - Jellyfin for media streaming  
-  - Other automation services  
+The hypervisor is powered by Proxmox VE, enabling both:
 
-  </details>
+- LXC containers (lightweight system services)
+- Full Virtual Machines (service segmentation)
 
----
+### 🌐 Network Layout
 
-## 📡 Services & Applications
+| Device Type | IP Range |
+|-------------|----------|
+| Router | 192.168.0.1 |
+| Network Devices | 192.168.0.2–9 |
+| LXC Containers | 192.168.0.11–13 |
+| Virtual Machines | 192.168.0.20–24 |
 
-### 🔹 Network & DNS
-- **AdGuard Home** (LXC: `adguard`) – DNS-level ad blocking and network filtering  
+Static addressing ensures predictability and clean reverse proxy routing.
 
-### 🔹 Media & Entertainment
-- **Jellyfin** – Media server for movies, shows, and music  
-- **Radarr / Sonarr / Lidarr** – Automated library management  
-- *(Planned)* qBittorrent / SABnzbd for downloads  
+## 📦 System Layer — LXC Containers
 
-### 🔹 Storage
-- **ZFS Pool (`tank`)** – 8TB usable RAID-Z1 array with snapshots & redundancy  
+Lightweight services that benefit from minimal overhead:
 
----
+| Service | Role | IP |
+|---------|------|-----|
+| dns | AdGuard Home (network-wide DNS + ad blocking) | 192.168.0.11 |
+| vpn | Tailscale (secure remote access) | 192.168.0.12 |
+| smb | SMB/NFS file sharing | 192.168.0.13 |
 
-## 📂 Directory Structure
+### Why LXC Here?
 
-```plaintext
-/tank
-  └── media-dataset/          # Main media storage
-  └── gameserver-dataset/     # Main game server storage
+- Low resource footprint
+- Faster startup
+- Direct network integration
+- Ideal for infrastructure utilities
 
-/local-lvm - for VM root disks and CT volumes for basic service files and configurations
+## 🧱 Platform Layer — Virtual Machines
+
+Each VM isolates a specific workload domain.
+
+### 🏗️ vm-infra — Infrastructure Services
+
+**IP:** 192.168.0.20  
+**Specs:** 2C / 4GB RAM / 64GB
+
+#### Docker Services
+
+- Authentik
+- Portainer
+- Redis
+- Traefik
+
+#### Reverse Proxy Mapping
+
+```
+jellyfin.local → 192.168.0.30:8096
+```
+
+#### Traefik Responsibilities
+
+- TLS termination
+- Internal DNS routing
+- Service discovery
+- Middleware (auth, rate limits)
+
+### ☁️ vm-apps — Personal Cloud Stack
+
+**IP:** 192.168.0.21  
+**Specs:** 4C / 6GB RAM / 64GB
+
+#### Docker Services
+
+- Nextcloud
+- Vaultwarden
+- Immich
+
+#### Purpose
+
+- File sync & collaboration
+- Password management
+- Photo/video management
+- Mobile-first integration
+
+### 🎬 vm-media — Media Automation Stack
+
+**IP:** 192.168.0.22  
+**Specs:** 4C / 6GB RAM / 64GB
+
+#### Docker Services
+
+- Jellyfin
+- Sonarr
+- Radarr
+- Prowlarr
+- Gluetun
+
+#### VPN Routing
+
+Sonarr, Radarr, and Prowlarr are configured to use Gluetun's network namespace:
+
+```yaml
+network_mode: "container:gluetun"
+```
+
+This ensures:
+
+- All indexer & download traffic routes through VPN
+- Media streaming remains local
+- Clean separation of trusted vs external traffic
+
+### 🎮 vm-games — Game Hosting Platform
+
+**IP:** 192.168.0.23  
+**Specs:** 8C / 24GB RAM / 128GB
+
+#### Stack
+
+- Pelican Panel
+- Wings daemon
+
+#### Designed for:
+
+- Multiplayer game hosting
+- Scalable server instances
+
+### 🧪 vm-dev — Experimental Environment
+
+**IP:** 192.168.0.24  
+**Specs:** 2C / 4GB RAM / 64GB
+
+#### Used for:
+
+- Testing new services
+- Development experiments
+- CI/CD concepts
+
+## 📊 Monitoring Stack
+
+Under `tank/services/monitoring/`:
+
+- Prometheus
+- Grafana
+
+### Provides:
+
+- VM resource tracking
+- Container metrics
+- Network observability
+- Long-term performance analytics
+
+## 🔐 Security Model
+
+- Centralized authentication via Authentik
+- VPN-protected automation stack
+- Internal DNS with ad-blocking
+- Reverse proxy entrypoint control
+- Service isolation by VM
+- ZFS snapshot-based backups
+
+## 🚀 Key Design Principles
+
+### 1️⃣ Isolation by Responsibility
+
+Each VM owns a single functional domain.
+
+### 2️⃣ Storage as a First-Class Layer
+
+ZFS datasets align with service boundaries.
+
+### 3️⃣ Containerization Within Virtualization
+
+Hybrid model:
+- Proxmox → isolation
+- Docker → portability
+
+### 4️⃣ Scalable & Modular
+
+New service?
+- Add Docker container
+- Or spin up dedicated VM
+
+## 📈 Future Improvements
+
+- Automated ZFS replication to offsite node
+- Infrastructure-as-Code (Ansible/Terraform)
+- Kubernetes experimentation in vm-dev
