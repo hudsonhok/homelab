@@ -5,28 +5,28 @@ A self-hosted, modular homelab environment built for media management, cloud ser
 ## Table of Contents
 
 - [Core Principles](#core-principles)
-- [🗂️ Architecture Overview](#️-architecture-overview)
-- [💾 Data Layer — ZFS](#-data-layer--zfs)
-- [🖥️ Host Layer — Proxmox](#️-host-layer--proxmox)
-- [📦 System Layer — LXC Containers](#-system-layer--lxc-containers)
-- [🧱 Platform Layer — Virtual Machines](#-platform-layer--virtual-machines)
-- [📊 Monitoring Stack](#-monitoring-stack)
-- [🔐 Security Model](#-security-model)
-- [🚀 Key Design Principles](#-key-design-principles)
-- [📈 Future Improvements](#-future-improvements)
+- [Architecture Overview](#️-architecture-overview)
+- [Data Layer — ZFS](#-data-layer--zfs)
+- [Host Layer — Proxmox](#️-host-layer--proxmox)
+- [System Layer — LXC Containers](#-system-layer--lxc-containers)
+- [Platform Layer — Virtual Machines](#-platform-layer--virtual-machines)
+- [Monitoring Stack — TODO](#-monitoring-stack)
+- [Security Model](#-security-model)
+- [Key Design Principles](#-key-design-principles)
+- [Future Improvements](#-future-improvements)
 
 ## Core Principles
 
 This architecture emphasizes:
 
-- 🔐 Service isolation
-- 📦 Logical storage separation
-- 🌐 Clean network segmentation
-- 🔄 Containerized application management
-- 📊 Observability and monitoring
-- 🧪 (Generally) Safe experimentation environment
+- Service isolation
+- Logical storage separation
+- Clean network segmentation
+- Containerized application management
+- Observability and monitoring
+- (Generally) Safe experimentation environment
 
-## 🗂️ Architecture Overview
+## Architecture Overview
 
 ```
 Physical Host
@@ -36,7 +36,7 @@ Physical Host
     └── ZFS Storage (Data Layer)
 ```
 
-## 💾 Data Layer — ZFS
+## Data Layer — ZFS
 
 All persistent storage is managed via ZFS using the primary pool: `tank/`
 
@@ -48,7 +48,7 @@ All persistent storage is managed via ZFS using the primary pool: `tank/`
 - Dataset-level control
 - Compression support
 
-### 📁 Dataset Layout
+### Dataset Layout
 
 ```
 tank/
@@ -66,19 +66,19 @@ tank/
 └── backups/         # snapshots & external backups
 ```
 
-### 🔎 Design Rationale
+### Design Rationale
 
 - `media/` is isolated for high-capacity streaming workloads
 - `services/` separates container data by function for easier backup and migration
 
-## 🖥️ Host Layer — Proxmox
+## Host Layer — Proxmox
 
 The hypervisor is powered by Proxmox VE, enabling both:
 
 - LXC containers (lightweight system services)
 - Full Virtual Machines (service segmentation)
 
-### 🌐 Network Layout
+### Network Layout
 
 | Device Type | IP Range |
 |-------------|----------|
@@ -89,7 +89,7 @@ The hypervisor is powered by Proxmox VE, enabling both:
 
 Static addressing ensures predictability and clean reverse proxy routing.
 
-## 📦 System Layer — LXC Containers
+## System Layer — LXC Containers
 
 Lightweight services that benefit from minimal overhead:
 
@@ -106,11 +106,11 @@ Lightweight services that benefit from minimal overhead:
 - Direct network integration
 - Ideal for infrastructure utilities
 
-## 🧱 Platform Layer — Virtual Machines
+## Platform Layer — Virtual Machines
 
 Each VM isolates a specific workload domain.
 
-### 🏗️ vm-infra — Infrastructure Services
+### vm-infra — Infrastructure Services
 
 **IP:** 192.168.0.20  
 **Specs:** 2C / 4GB RAM / 64GB
@@ -135,7 +135,7 @@ jellyfin.local → 192.168.0.30:8096
 - Service discovery
 - Middleware (auth, rate limits)
 
-### ☁️ vm-apps — Personal Cloud Stack
+### vm-apps — Personal Cloud Stack
 
 **IP:** 192.168.0.21  
 **Specs:** 4C / 6GB RAM / 64GB
@@ -153,7 +153,7 @@ jellyfin.local → 192.168.0.30:8096
 - Photo/video management
 - Mobile-first integration
 
-### 🎬 vm-media — Media Automation Stack
+### vm-media — Media Automation Stack
 
 **IP:** 192.168.0.22  
 **Specs:** 4C / 6GB RAM / 64GB
@@ -180,7 +180,7 @@ This ensures:
 - Media streaming remains local
 - Clean separation of trusted vs external traffic
 
-### 🎮 vm-games — Game Hosting Platform
+### vm-games — Game Hosting Platform
 
 **IP:** 192.168.0.23  
 **Specs:** 8C / 24GB RAM / 128GB
@@ -195,7 +195,7 @@ This ensures:
 - Multiplayer game hosting
 - Scalable server instances
 
-### 🧪 vm-dev — Experimental Environment
+### vm-dev — Experimental Environment
 
 **IP:** 192.168.0.24  
 **Specs:** 2C / 4GB RAM / 64GB
@@ -206,7 +206,7 @@ This ensures:
 - Development experiments
 - CI/CD concepts
 
-## 📊 Monitoring Stack
+## Monitoring Stack
 
 Under `tank/services/monitoring/`:
 
@@ -220,7 +220,7 @@ Under `tank/services/monitoring/`:
 - Network observability
 - Long-term performance analytics
 
-## 🔐 Security Model
+## Security Model
 
 - Centralized authentication via Authentik
 - VPN-protected automation stack
@@ -229,29 +229,29 @@ Under `tank/services/monitoring/`:
 - Service isolation by VM
 - ZFS snapshot-based backups
 
-## 🚀 Key Design Principles
+## Key Design Principles
 
-### 1️⃣ Isolation by Responsibility
+### 1️. Isolation by Responsibility
 
 Each VM owns a single functional domain.
 
-### 2️⃣ Storage as a First-Class Layer
+### 2️. Storage as a First-Class Layer
 
 ZFS datasets align with service boundaries.
 
-### 3️⃣ Containerization Within Virtualization
+### 3️. Containerization Within Virtualization
 
 Hybrid model:
 - Proxmox → isolation
 - Docker → portability
 
-### 4️⃣ Scalable & Modular
+### 4️. Scalable & Modular
 
 New service?
 - Add Docker container
 - Or spin up dedicated VM
 
-## 📈 Future Improvements
+## Future Improvements
 
 - Automated ZFS replication to offsite node
 - Infrastructure-as-Code (Ansible/Terraform)
